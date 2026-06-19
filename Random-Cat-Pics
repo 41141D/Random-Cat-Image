@@ -1,0 +1,43 @@
+import sys
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton
+from PyQt6.QtCore import Qt
+import requests
+class App(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.button = QPushButton("Click me for new cat image",self)
+        self.button.setObjectName("button")
+        self.button.clicked.connect(self.cat_api)
+        self.image_label = QLabel("no cat loaded",self)
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.initUI()
+    def initUI(self):
+        self.setWindowTitle("Cat API")
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.image_label)
+        vbox.addWidget(self.button)
+        self.setLayout(vbox)
+        self.setStyleSheet("""
+        QPushButton {color: black;
+        border: 1px solid black;
+        border-radius: 10px;
+        font-size: 66px;
+        }
+        QPushButton#button:hover {background-color:grey;}
+        """)
+    def cat_api(self):
+        cat_url = "https://api.thecatapi.com/v1/images/search"
+        request = requests.get(cat_url)
+        data = request.json()
+        cat_image = data[0]["url"]
+        image_data = requests.get(cat_image).content
+        pixmap = QPixmap()
+        pixmap.loadFromData(image_data)
+        scaled_pixmap = pixmap.scaledToWidth(400)
+        self.image_label.setPixmap(scaled_pixmap)
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = App()
+    window.show()
+    sys.exit(app.exec())
