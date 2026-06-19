@@ -51,7 +51,11 @@ class App(QWidget):
         image_data = requests.get(dog_image).content
         pixmap = QPixmap()
         pixmap.loadFromData(image_data)
-        scaled_pixmap = pixmap.scaledToWidth(400)
+        scaled_pixmap = pixmap.scaled(
+            400, 400,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
         self.image_label.setPixmap(scaled_pixmap)
 if __name__ == "__main__":
     app = QApplication(sys.argv)
