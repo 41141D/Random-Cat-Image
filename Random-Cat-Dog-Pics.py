@@ -73,9 +73,11 @@ class App(QWidget):
             all_images = os.listdir(image_folder)
             random_image = random.choice(all_images)
             full_path = os.path.join(image_folder, random_image)
-
             pixmap = QPixmap(full_path)
-            self.scale_and_show(pixmap)
+            scaled_pixmap = pixmap.scaled(400, 400,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation)
+            self.image_label.setPixmap(scaled_pixmap)
         else:
             self.image_label.setText("No images found")
 if __name__ == "__main__":
