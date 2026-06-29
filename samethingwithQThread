@@ -1,0 +1,57 @@
+import sys
+import requests
+from PyQt6.QtCore import Qt, pyqtSignal, QThread
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QApplication, QVBoxLayout, QWidget, QLabel, QPushButton
+
+class Image_worker(QThread):
+    signal = pyqtSignal(bytes)
+    def __init__(self, api_type):
+        super().__init__()
+        self.api_type = api_type
+    def run(self):
+        if self.api_type == "dog":
+            url = "https://dog.ceo/api/breeds/image/random"
+            response = requests.get(url)
+            json_data = response.json()
+            image = json_data["message"]
+            img_bytes = requests.get(image).content
+            self.signal.emit(img_bytes)
+        elif self.api_type == "cat":
+            url = "https://api.thecatapi.com/v1/images/search"
+            response = requests.get(url)
+            json_data = response.json()
+            image_cat = json_data[0]["url"]
+            img_bytes_cat = requests.get(image_cat).content
+            self.signal.emit(img_bytes_cat)
+class mainwindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Ollama")
+        self.label = QLabel("image will be loaded here",self)
+        self.button = QPushButton("load dog",self)
+        self.button2 = QPushButton("load cat",self)
+        self.button.clicked.connect(lambda: self.start_thread("dog"))
+        self.button2.clicked.connect(lambda: self.start_thread("cat"))
+        self.initUI()
+    def initUI(self):
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.label)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vbox.addWidget(self.button)
+        vbox.addWidget(self.button2)
+        self.setLayout(vbox)
+    def start_thread(self,api_type):
+        self.thread_starter = Image_worker(api_type)
+        self.thread_starter.signal.connect(self.showing)
+        self.thread_starter.start()
+    def showing(self,raw_image_bytes):
+        pixmap = QPixmap()
+        pixmap.loadFromData(raw_image_bytes)
+        self.label.setPixmap(pixmap)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = mainwindow()
+    window.show()
+    sys.exit(app.exec())
